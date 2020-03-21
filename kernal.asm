@@ -1,0 +1,77 @@
+.namespace kernal {
+  .label LSTX   = $c5
+  .label CINV   = $0314
+  .label IRQVEC = $0314
+
+  .label CBINV  = $0316
+  .label NMINV  = $0318
+
+  .label IOPEN  = $031a // KERNAL vectors
+  .label ICLOSE = $031c
+  .label ICHKIN = $031e
+  .label ICKOUT = $0320
+  .label ICLRCH = $0322
+  .label IBASIN = $0324
+  .label IBSOUT = $0326
+  .label ISTOP  = $0328
+  .label IGETIN = $032a
+  .label ICLALL = $032c
+  .label USRCMD = $032e
+  .label ILOAD  = $0330
+  .label ISAVE  = $0332
+  .label FREE1  = $0334 // 8 free bytes (0334 - 033b)
+  .label TBUFFER= $033c // cassette buffer (033c - 03fb)
+  .label FREE2  = $03fc // 4 free bytes (03fc - 03ff)
+
+  .label POLY1  = $e043
+  .label POLY2  = $e059
+  .label RMULC  = $e08d
+  .label RADDC  = $e092
+  .label RND    = $e097
+  .label SYS    = $e12a
+  //.label SAVE   = $e156
+  .label VERIFY = $e165
+  //.label LOAD   = $e168
+  //.label OPEN   = $e1be
+  //.label CLOSE  = $e1c7
+
+  .label SCINIT = $ff81
+  .label IOINIT = $ff84
+  .label RAMTAS = $ff87
+  .label RESTOR = $ff8a
+  .label VECTOR = $ff8d
+  .label SETMSG = $ff90
+  .label LSTNSA = $ff93
+  .label TALKSA = $ff96
+  .label MEMBOT = $ff99
+  .label MEMTOP = $ff9c
+  .label SCNKEY = $ff9f
+  .label SETTMO = $ffa2
+  .label IECIN  = $ffa5
+  .label IECOUT = $ffa8
+  .label UNTALK = $ffab
+  .label UNLSTN = $ffae
+  .label LISTEN = $ffb1
+  .label TALK   = $ffb4
+  .label READST = $ffb7
+  .label SETLFS = $ffba
+  .label SETNAM = $ffbd
+  .label OPEN   = $ffc0
+  .label CLOSE  = $ffc3
+  .label CHKIN  = $ffc6
+  .label CHKOUT = $ffc9
+  .label CLRCHN = $ffcc
+  .label CHRIN  = $ffcf
+  .label CHROUT = $ffd2 // https://www.c64-wiki.com/wiki/CHROUT
+  .label LOAD   = $ffd5
+  .label SAVE   = $ffd8
+  .label SETTIM = $ffdb
+  .label RDTIM  = $ffde
+  .label STOP   = $ffe1
+  .label GETIN  = $ffe4
+  .label CLALL  = $ffe7
+  .label UDTIM  = $ffea
+  .label SCREEN = $ffed
+  .label PLOT   = $fff0 // https://www.c64-wiki.com/wiki/PLOT_(KERNAL)
+  .label IOBASE = $fff3
+}

@@ -1,0 +1,367 @@
+init:
+  load:
+  - filename: /code/kernal.rom
+    address: $e000
+  - filename: /code/basic.rom
+    address: $a000
+unit_tests:
+  program: /code/include_me_full.prg
+  tests:
+  - name: memory-fill
+    description: Fill an uneven block of memory
+    set_memory:
+    - description: Store $BD which is a weird number
+      address: "{r0L}"
+      byte_value: "$bd"
+    - description: Target memory
+      address: "{r1}"
+      word_value: "$1234"
+    - description: Store 300 bytes
+      address: "{r2}"
+      word_value: "$12c"
+    jump_address: "{FillMemory}"
+    assert:
+    - description: Memory filled correctly
+      type: memory_block
+      address: "$1234"
+      byte_value: "$bd"
+      byte_count: "$12c"
+
+  - name: memory-copy-kernal-to-userspace
+    description: Copy kernal to lower memory
+    set_memory:
+    - description: Source Address
+      address: "{r0}"
+      word_value: "$e000"
+    - description: Target Address
+      address: "{r1}"
+      word_value: "$4000"
+    - description: 8k
+      address: "{r2}"
+      word_value: "$2000"
+    jump_address: "{MoveMemory}"
+    assert:
+    - description: Memory copied successfully
+      type: memory_block_compare
+      address: "$e000"
+      target: "$4000"
+      byte_count: "$2000"
+    - description: Make sure performance is acceptable
+      type: cycle_count
+      cycle_count: 131719
+      op: lt
+
+  - name: sprites-enable-x-expand-correctly
+    description: Enable horizontal expansion of a sprite
+    set_memory:
+    - description: Sprite 1
+      address: "{r3L}"
+      byte_value: "$01"
+    - description: The horizontal expansion attribute
+      address: "{r3H}"
+      byte_value: "{SPR_X_EXPAND}"
+    - description: Set to True
+      address: "{r4L}"
+      byte_value: "{SPR_EXPAND}"
+    - description: Enable X expansion for Sprite 7
+      address: "{vic.XXPAND}"
+      byte_value: "$80"
+    jump_address: "{ChangeSpriteAttribute}"
+    assert:
+    - description: Sprite 1's horizontal expansion is set to True
+      type: memory_test
+      address: "{vic.XXPAND}"
+      op: eq
+      byte_value: "$82"
+
+  - name: sprites-disable-x-expand-correctly
+    description: Disable horizontal expansion of a sprite
+    set_memory:
+    - description: Sprite 5
+      address: "{r3L}"
+      byte_value: "$05"
+    - description: The horizontal expansion attribute
+      address: "{r3H}"
+      byte_value: "{SPR_X_EXPAND}"
+    - description: Set to False
+      address: "{r4L}"
+      byte_value: "{SPR_NORMAL}"
+    - description: Enable X expansion for Sprite 5 & 6
+      address: "{vic.XXPAND}"
+      byte_value: "$60"
+    jump_address: "{ChangeSpriteAttribute}"
+    assert:
+    - description: Sprite 5's horizontal expansion is set to False
+      type: memory_test
+      address: "{vic.XXPAND}"
+      op: eq
+      byte_value: "$40"
+
+  - name: sprites-enable-sprite-correctly
+    description: Enable a sprite
+    set_memory:
+    - description: Sprite 7
+      address: "{r3L}"
+      byte_value: "$07"
+    - description: The enable/disable attribute
+      address: "{r3H}"
+      byte_value: "{SPR_VISIBLE}"
+    - description: Set to True
+      address: "{r4L}"
+      byte_value: "{SPR_SHOW}"
+    - description: Start with sprite 0 enabled
+      address: "{vic.SPENA}"
+      byte_value: "$01"
+    jump_address: "{ChangeSpriteAttribute}"
+    assert:
+    - description: Sprite 7 and 0 are now enabled
+      type: memory_test
+      address: "{vic.SPENA}"
+      op: eq
+      byte_value: "$81"
+
+  - name: sprites-disable-sprite-correctly
+    description: Disable a sprite
+    set_memory:
+    - description: Sprite 3
+      address: "{r3L}"
+      byte_value: "$03"
+    - description: The enable/disable attribute
+      address: "{r3H}"
+      byte_value: "{SPR_VISIBLE}"
+    - description: Set to True
+      address: "{r4L}"
+      byte_value: "{SPR_HIDE}"
+    - description: Start with sprite 1 & 3 enabled
+      address: "{vic.SPENA}"
+      byte_value: "$0a"
+    jump_address: "{ChangeSpriteAttribute}"
+    assert:
+    - description: Sprite 3 is disabled and sprite 1 is still enabled
+      type: memory_test
+      address: "{vic.SPENA}"
+      op: eq
+      byte_value: "$02"
+
+  - name: sprites-positions-correctly-without-msb
+    description: Sprite X pos < 256 sets MSB to 0
+    set_memory:
+    - description: MSB for all sprites to 0
+      address: "{vic.MSIGX}"
+      byte_value: "$00"
+    - description: Sprite 0
+      address: "{r3L}"
+      byte_value: "$00"
+    - description: X pos at 255
+      address: "{r4}"
+      word_value: "$00ff"
+    - description: Y pos at 64
+      address: "{r5L}"
+      byte_value: "$40"
+    jump_address: "{PositionSprite}"
+    assert:
+    - description: Sprite 0's X pos is at ff
+      type: memory_test
+      address: "{vic.SP0X}"
+      op: eq
+      byte_value: "$ff"
+    - description: And sprite 0's MSB is set to 0
+      type: memory_test
+      address: "{vic.MSIGX}"
+      op: eq
+      byte_value: "$00"
+
+  - name: sprites-sets-msb-properly
+    description: Moving a sprite horizontally sets the MSB properly
+    set_memory:
+    - description: MSB for all sprites to 0
+      address: "{vic.MSIGX}"
+      byte_value: "$00"
+    - description: Sprite 0
+      address: "{r3L}"
+      byte_value: "$00"
+    - description: X pos at 256
+      address: "{r4}"
+      word_value: "$0100"
+    - description: Y pos at 64
+      address: "{r5L}"
+      byte_value: "$40"
+    jump_address: "{PositionSprite}"
+    assert:
+    - description: Sprite 0's X pos is at 0
+      type: memory_test
+      address: "{vic.SP0X}"
+      op: eq
+      byte_value: "$00"
+    - description: But sprite 0's MSB is set to 1
+      type: memory_test
+      address: "{vic.MSIGX}"
+      op: eq
+      byte_value: "$01"
+
+  - name: timer-single-disables-on-update
+    description: Single shot timer disables when it hits 0
+    set_memory:
+    - description: Enable timer 0
+      address: "{c64lib_timers}"
+      byte_value: "{ENABLE}"
+    - description: Single shot
+      address: "{c64lib_timers} + 1"
+      byte_value: "{TIMER_SINGLE}"
+    - description: Current value
+      address: "{c64lib_timers} + 2"
+      word_value: "$01"
+    - description: Frequency
+      address: "{c64lib_timers} + 4"
+      word_value: "{TIMER_ONE_SECOND}"
+    - description: Timer call address
+      address: "{c64lib_timers} + 6"
+      word_value: "{ReadJoysticks}"
+    jump_address: "{UpdateTimers}"
+    assert:
+    - description: Timer is disabled
+      type: memory_test
+      address: "{c64lib_timers}"
+      op: eq
+      byte_value: "{DISABLE}"
+
+  - name: timer-continuous-will-reset-on-update
+    description: Continuous timer resets when it hits 0
+    set_memory:
+    - description: Enable timer 0
+      address: "{c64lib_timers}"
+      byte_value: "{ENABLE}"
+    - description: Continuous
+      address: "{c64lib_timers} + 1"
+      byte_value: "{TIMER_CONTINUOUS}"
+    - description: Current value
+      address: "{c64lib_timers} + 2"
+      word_value: "$01"
+    - description: Frequency
+      address: "{c64lib_timers} + 4"
+      word_value: "{TIMER_ONE_SECOND}"
+    - description: Timer call address
+      address: "{c64lib_timers} + 6"
+      word_value: "{ReadJoysticks}"
+    jump_address: "{UpdateTimers}"
+    assert:
+    - description: Timer is still enabled
+      type: memory_test
+      address: "{c64lib_timers}"
+      op: eq
+      byte_value: "{ENABLE}"
+    - description: Current value has been reset
+      type: memory_test
+      address: "{c64lib_timers} + 2"
+      op: eq
+      word_value: "{TIMER_ONE_SECOND}"
+
+  - name: timer-enable
+    description: Enable a disabled timer
+    set_memory:
+    - description: Disable timer 0
+      address: "{c64lib_timers}"
+      byte_value: "{DISABLE}"
+    - description: Timer number 0
+      address: "{r2H}"
+      byte_value: "$00"
+    - description: Enable the timer
+      address: "{r3L}"
+      byte_value: "{ENABLE}"
+    jump_address: "{EnDisTimer}"
+    assert:
+    - description: Timer has been enabled
+      type: memory_test
+      address: "{c64lib_timers}"
+      op: eq
+      byte_value: "{ENABLE}"
+
+  - name: timer-disable
+    description: Disable an enabled timer
+    set_memory:
+    - description: Enable timer 0
+      address: "{c64lib_timers}"
+      byte_value: "{ENABLE}"
+    - description: Timer number 0
+      address: "{r2H}"
+      byte_value: "$00"
+    - description: Disable the timer
+      address: "{r3L}"
+      byte_value: "{DISABLE}"
+    jump_address: "{EnDisTimer}"
+    assert:
+    - description: Timer has been disabled
+      type: memory_test
+      address: "{c64lib_timers}"
+      op: eq
+      byte_value: "{DISABLE}"
+
+  - name: timer-init-timer-memory
+    description: Make sure initializing the timers clears timer memory
+    jump_address: "{ClearTimers}"
+    assert:
+    - description: Timer memory is cleared
+      type: memory_block
+      address: "{c64lib_timers}"
+      byte_count: "{TIMER_STRUCT_BYTES}"
+      byte_value: "$0"
+
+  - name: timer-create-single-shot
+    description: Make sure we can create a single shot timer
+    set_memory:
+    - description: Frequency
+      address: "{r0}"
+      word_value: "$0001"
+    - description: Call address
+      address: "{r1}"
+      word_value: "{ReadJoysticks}"
+    - description: Single or continuous
+      address: "{r2L}"
+      byte_value: "{TIMER_SINGLE}"
+    - description: Timer number
+      address: "{r2H}"
+      byte_value: "$00"
+    - description: Enabled
+      address: "{r3L}"
+      byte_value: "{ENABLE}"
+    jump_address: "{CreateTimer}"
+    assert:
+    - description: Enabled
+      type: memory_test
+      address: "{c64lib_timers} + 0 + peekbyte({r2H}) * 8"
+      op: eq
+      byte_value: "{ENABLE}"
+    - description: Single or continuous
+      type: memory_test
+      address: "{c64lib_timers} + 1 + peekbyte({r2H}) * 8"
+      op: eq
+      byte_value: "{TIMER_SINGLE}"
+    - description: Current value
+      type: memory_test
+      address: "{c64lib_timers} + 2 + peekbyte({r2H}) * 8"
+      op: eq
+      word_value: "$01"
+    - description: Frequency
+      type: memory_test
+      address: "{c64lib_timers} + 4 + peekbyte({r2H}) * 8"
+      op: eq
+      word_value: "$01"
+    - description: Call address
+      type: memory_test
+      address: "{c64lib_timers} + 6 + peekbyte({r2H}) * 8"
+      op: eq
+      word_value: "{ReadJoysticks}"
+    - description: Check A register's value
+      type: processor_register
+      register: a
+      op: eq
+      byte_value: "$21"
+    - description: Make sure we're executing within 85 cycles
+      type: cycle_count
+      op: lt
+      cycle_count: 85
+    - description: Make sure the carry flag is set
+      type: processor_register
+      register: c
+      op: eq
+      byte_value: 0
