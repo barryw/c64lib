@@ -48,7 +48,7 @@ unit_tests:
       byte_count: "$2000"
     - description: Make sure performance is acceptable
       type: cycle_count
-      cycle_count: 131719
+      cycle_count: 131720
       op: lt
 
   - name: sprites-enable-x-expand-correctly
