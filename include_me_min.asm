@@ -2,6 +2,8 @@
 #import "basic.asm"
 #import "kernal.asm"
 #import "vic.asm"
+#import "cia.asm"
+#import "sid.asm"
 #import "macros.asm"
 #import "pseudocommands.asm"
 #import "registers.asm"

@@ -237,9 +237,4 @@
   .label NEGOP    = $bfb4
   .label EXPCON   = $bfbf
   .label EXP      = $bfed
-
-  .label CLRSCR = $e544
-  .label HOME   = $e566
-
-  .label IRQNOR = $ea31
 }

@@ -21,7 +21,7 @@ ReadJoystick:
   sta c64lib_joy_up, x
   sta c64lib_joy_down, x
 
-  lda vic.CIAPRA, x
+  lda cia.CIAPRA, x
   and #JOY_BUTTON
   beq !set_button+
   and #JOY_LEFT

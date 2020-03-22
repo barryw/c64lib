@@ -1,3 +1,8 @@
+/*
+
+Constants for the C64's Video Interface Chip (VIC-II)
+
+*/
 .namespace vic {
   .label COLOR  = $0286
   .label VICSCN = $0400
@@ -53,10 +58,4 @@
   .label SP7COL = $d02e
 
   .label COLCLK = $d81a
-  .label CIAPRA = $dc00
-  .label CIAPRB = $dc01
-  .label TODTN1 = $dc08
-  .label CIAICR = $dc0d
-  .label TODTN2 = $dd08
-  .label CI2ICR = $dd0d
 }
