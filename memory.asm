@@ -28,7 +28,7 @@ FillMemory:
   rts
 
 //
-// Move a chunk of memory
+// Copy a chunk of memory
 //
 // r0 source memory
 // r1 target memory
@@ -36,7 +36,7 @@ FillMemory:
 //
 // Borrowed from https://github.com/mist64/geos/blob/2090bca64fc2627beef5c8232aafaec61f1f5a53/kernal/memory/memory2.s#L123
 //
-MoveMemory:
+CopyMemory:
   lda r2L
   ora r2H
   beq !l7+

@@ -42,7 +42,7 @@ or
 #include "include_me_min.asm"
 ```
 
-The `include_me_min.asm` file only brings in the pseudocommands, macros and constants. Inclding `include_me_full.asm` will also bring in sprits, timer and memory routines.
+The `include_me_min.asm` file only brings in the pseudocommands, macros and constants. Inclding `include_me_full.asm` will also bring in sprites, timer and memory routines.
 
 You can also include individual features:
 
@@ -54,18 +54,25 @@ You can also include individual features:
 
 Bringing in the `include_me_min.asm` file gives you access to:
 
-- All of the Kernal constants. Why remember addresses when you can use things like `kernal.CHROUT`? These are all in the `kernal` namespace.
-- All of the BASIC constants. These are in the `basic` namespace.
-- All of the VIC-II constants. These are in the `vic` namespace.
+- All of the Kernal constants. (`kernal` namespace)
+- All of the BASIC constants. (`basic` namespace)
+- All of the VIC-II constants. (`vic` namespace)
+- The constants for the 32 addresses of the twin CIAs (CIA1 and CIA2). (`cia` namespace)
+- 29 constants for the SID chip. (`sid` namespace)
 - A bunch of pseudocommands to make your code easier to write and more consistent.
 - A bunch of macros to further ease development.
 - Constants used by the library that can also be used in your own code.
+- 8 16-bit zeropage pseudo registers modeled after the way the GEOS guys did it (r0, r0L, r0H, etc). NOTE: If you're using BASIC, these registers will conflict with addresses in use by it.
 
 Using `include_me_full.asm` brings in these additional features:
 
 - Sprite routines
 - Memory fill and copy routines
 - Timer routines for single-shot and continuous timers
+
+__NOTE__ There is a hardware register version of the sprite routines if you can't spare, or can't use ZP memory. You can include `include_me_sprites_r.asm` to use it. The sprite macros below will automatically adapt and are called the same way as the pseudo register versions.
+
+I will work on making hardware register versions of the other routines as well.
 
 #### What's available for sprites?
 

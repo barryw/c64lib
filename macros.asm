@@ -75,7 +75,7 @@ Copy a block of memory
   CpyWI(target, r1)
   CpyWI(length, r2)
 
-  jsr MoveMemory
+  jsr CopyMemory
 }
 
 /*
@@ -193,6 +193,77 @@ Pop a word from the stack and store it
 
 #if SPRITES
 
+#if REGISTER_MODE
+
+/*
+Enable or disable a sprite's visibility
+*/
+.macro SpriteEnable(number, enabled) {
+  ldx #number
+  ldy #SPR_VISIBLE
+  lda #enabled
+
+  jsr ChangeSpriteAttribute
+}
+
+/*
+Enable or disable a sprite's X expansion
+*/
+.macro SpriteXExpand(number, endis) {
+  ldx #number
+  ldy #SPR_X_EXPAND
+  lda #endis
+
+  jsr ChangeSpriteAttribute
+}
+
+/*
+Enable or disable a sprite's Y expansion
+*/
+.macro SpriteYExpand(number, endis) {
+  ldx #number
+  ldy #SPR_Y_EXPAND
+  lda #endis
+
+  jsr ChangeSpriteAttribute
+}
+
+/*
+Set a sprite's priority
+*/
+.macro SpritePriority(number, priority) {
+  ldx #number
+  ldy #SPR_PRIORITY
+  lda #priority
+
+  jsr ChangeSpriteAttribute
+}
+
+/*
+Set a sprite's color mode
+*/
+.macro SpriteColorMode(number, mode) {
+  ldx #number
+  ldy #SPR_HMC
+  lda #mode
+
+  jsr ChangeSpriteAttribute
+}
+
+/*
+Position a sprite
+*/
+.macro PositionSprite(number, xpos, ypos) {
+  stb #ypos:$02
+  ldx #number
+  lda xpos
+  ldy xpos + $01
+
+  jsr PositionSprite
+}
+
+#else
+
 /*
 Enable or disable a sprite's visibility
 */
@@ -258,6 +329,8 @@ Position a sprite
 
   jsr PositionSprite
 }
+
+#endif
 
 #endif
 

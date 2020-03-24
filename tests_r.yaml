@@ -1,0 +1,102 @@
+init:
+  load:
+unit_tests:
+  program: /code/include_me_full_r.prg
+  tests:
+  - name: sprites-positions-correctly-without-msb
+    description: Sprite X pos < 256 sets MSB to 0
+    set_registers:
+    - description: Sprite 0
+      register: x
+      byte_value: $00
+    - description: X pos low byte at 255
+      register: a
+      byte_value: $ff
+    - description: X pos high byte at $00
+      register: y
+      byte_value: $00
+    set_memory:
+    - description: Sprite Y position at $40
+      address: "$02"
+      byte_value: "$40"
+    - description: MSB for all sprites to 0
+      address: "{vic.MSIGX}"
+      byte_value: "$00"
+    jump_address: "{PositionSprite}"
+    assert:
+    - description: Sprite 0's X pos is at ff
+      type: memory_test
+      address: "{vic.SP0X}"
+      op: eq
+      byte_value: "$ff"
+    - description: Sprite 0's Y pos is at $40
+      type: memory_test
+      address: "{vic.SP0Y}"
+      op: eq
+      byte_value: "$40"
+    - description: And sprite 0's MSB is set to 0
+      type: memory_test
+      address: "{vic.MSIGX}"
+      op: eq
+      byte_value: "$00"
+
+  - name: sprites-sets-msb-properly
+    description: Moving a sprite horizontally sets the MSB properly
+    set_registers:
+    - description: Sprite 0
+      register: x
+      byte_value: $00
+    - description: X pos low byte at 255
+      register: a
+      byte_value: $00
+    - description: X pos high byte at $00
+      register: y
+      byte_value: $01
+    set_memory:
+    - description: Sprite Y position at $40
+      address: "$02"
+      byte_value: "$40"
+    - description: MSB for all sprites to 0
+      address: "{vic.MSIGX}"
+      byte_value: "$00"
+    jump_address: "{PositionSprite}"
+    assert:
+    - description: Sprite 0's X pos is at 0
+      type: memory_test
+      address: "{vic.SP0X}"
+      op: eq
+      byte_value: "$00"
+    - description: But sprite 0's MSB is set to 1
+      type: memory_test
+      address: "{vic.MSIGX}"
+      op: eq
+      byte_value: "$01"
+    - description: Sprite 0's Y pos is at $40
+      type: memory_test
+      address: "{vic.SP0Y}"
+      op: eq
+      byte_value: "$40"
+
+  - name: sprites-enable-x-expand-correctly
+    description: Enable horizontal expansion of a sprite
+    set_registers:
+    - description: X register is sprite number
+      register: x
+      byte_value: "$01"
+    - description: Y register is attribute
+      register: y
+      byte_value: "{SPR_X_EXPAND}"
+    - description: A register is value
+      register: a
+      byte_value: "{SPR_EXPAND}"
+    set_memory:
+    - description: Enable X expansion for Sprite 7
+      address: "{vic.XXPAND}"
+      byte_value: "$80"
+    jump_address: "{ChangeSpriteAttribute}"
+    assert:
+    - description: Sprite 1's horizontal expansion is set to True
+      type: memory_test
+      address: "{vic.XXPAND}"
+      op: eq
+      byte_value: "$82"

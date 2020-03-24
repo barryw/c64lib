@@ -1,9 +1,5 @@
 init:
   load:
-  - filename: /code/kernal.rom
-    address: $e000
-  - filename: /code/basic.rom
-    address: $a000
 unit_tests:
   program: /code/include_me_full.prg
   tests:
@@ -39,7 +35,7 @@ unit_tests:
     - description: 8k
       address: "{r2}"
       word_value: "$2000"
-    jump_address: "{MoveMemory}"
+    jump_address: "{CopyMemory}"
     assert:
     - description: Memory copied successfully
       type: memory_block_compare
