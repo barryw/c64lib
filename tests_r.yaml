@@ -100,3 +100,83 @@ unit_tests:
       address: "{vic.XXPAND}"
       op: eq
       byte_value: "$82"
+
+  - name: vic-set-bank-chars-and-screen-i
+    description: Set VIC bank to 0, screen to 1024 and chars to 12288
+    set_registers:
+    - description: X register is bank 0
+      register: x
+      byte_value: "$00"
+    - description: A register is character memory
+      register: a
+      byte_value: "$06"
+    - description: Y register is screen memory
+      register: y
+      byte_value: "$01"
+    jump_address: "{SetVICBank}"
+    assert:
+    - description: CIA 2 is set properly
+      type: memory_test
+      address: "{cia.CI2PRA}"
+      op: eq
+      byte_value: "$03"
+    - description: VIC is set properly
+      type: memory_test
+      address: "{vic.VMCSB}"
+      op: eq
+      byte_value: "$1c"
+    - description: Bank Memory Base is set properly
+      type: memory_test
+      address: "{vic.BankMemoryBase}"
+      op: eq
+      word_value: "$0000"
+    - description: Screen Memory Base is set properly
+      type: memory_test
+      address: "{vic.ScreenMemoryBase}"
+      op: eq
+      word_value: "$0400"
+    - description: Character Memory Base is set properly
+      type: memory_test
+      address: "{vic.CharacterMemoryBase}"
+      op: eq
+      word_value: "$3000"
+
+  - name: vic-set-bank-chars-and-screen-ii
+    description: Set VIC bank to 3, screen to 4096 and chars to 8192
+    set_registers:
+    - description: X register is bank 0
+      register: x
+      byte_value: "$03"
+    - description: A register is character memory
+      register: a
+      byte_value: "$04"
+    - description: Y register is screen memory
+      register: y
+      byte_value: "$04"
+    jump_address: "{SetVICBank}"
+    assert:
+    - description: CIA 2 is set properly
+      type: memory_test
+      address: "{cia.CI2PRA}"
+      op: eq
+      byte_value: "$00"
+    - description: VIC is set properly
+      type: memory_test
+      address: "{vic.VMCSB}"
+      op: eq
+      byte_value: "$48"
+    - description: Bank Memory Base is set properly
+      type: memory_test
+      address: "{vic.BankMemoryBase}"
+      op: eq
+      word_value: "$c000"
+    - description: Screen Memory Base is set properly
+      type: memory_test
+      address: "{vic.ScreenMemoryBase}"
+      op: eq
+      word_value: "$d000"
+    - description: Character Memory Base is set properly
+      type: memory_test
+      address: "{vic.CharacterMemoryBase}"
+      op: eq
+      word_value: "$e000"

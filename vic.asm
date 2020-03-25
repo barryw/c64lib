@@ -1,9 +1,149 @@
+*=* "VIC Routines"
+
+//
+// These routines can be used to manage the current VIC bank as well as character
+// memory & screen memory
+//
+
+#if REGISTER_MODE
+
+//
+// Set the VIC bank, screen memory and character memory
+//
+// X bank number (0-3) (multiples of 16k)
+// A character memory within the bank (0-7) (multiples of 2k)
+// Y screen memory within the bank (0-15) (multiples of 1k)
+//
+SetVICBank:
+  asl
+  sta $02
+  lda cia.CI2PRA
+  and #%11111100
+  ora BankLookup, x
+  sta cia.CI2PRA
+  lda vic.VMCSB
+  and #%11110001
+  ora $02
+  sta vic.VMCSB
+  tya
+  asl
+  asl
+  asl
+  asl
+  tay
+  sty $02
+  lda vic.VMCSB
+  and #%00001111
+  ora $02
+  sta vic.VMCSB
+  jmp UpdateBaseLocations
+
+#else
+
+//
+// Set the VIC bank, screen memory and character memory
+//
+// r0L bank number (0-3) (multiples of 16k)
+// r0H character memory within the bank (0-7) (multiples of 2k)
+// r1L screen memory within the bank (0-15) (multiples of 1k)
+//
+SetVICBank:
+  lda r0L
+  tax
+  lda cia.CI2PRA
+  and #%11111100
+  ora BankLookup, x
+  sta cia.CI2PRA
+  lda vic.VMCSB
+  and #%11110001
+  ora r0H
+  sta vic.VMCSB
+  asl r1L
+  asl r1L
+  asl r1L
+  asl r1L
+  lda vic.VMCSB
+  and #%00001111
+  ora r1L
+  sta vic.VMCSB
+  jmp UpdateBaseLocations
+
+#endif
+
+//
+// Updates the 4 base locations below based on how the VIC bank,
+// screen memory and character memory are configured.
+//
+UpdateBaseLocations:
+  lda cia.CI2PRA
+  and #%00000011
+  eor #%00000011
+  asl
+  asl
+  asl
+  asl
+  asl
+  asl
+  sta vic.BankMemoryBase + $01
+  lda vic.VMCSB
+  pha
+  and #%11110000
+  lsr
+  lsr
+  clc
+  adc vic.BankMemoryBase + $01
+  sta vic.ScreenMemoryBase + $01
+  pla
+  and #%00001110
+  asl
+  asl
+  clc
+  adc vic.BankMemoryBase + $01
+  sta vic.CharacterMemoryBase + $01
+
+  rts
+
+BankLookup:
+  .byte %11
+  .byte %10
+  .byte %01
+  .byte %00
+
 /*
 
 Constants for the C64's Video Interface Chip (VIC-II)
 
 */
 .namespace vic {
+  //
+  // 16-bit pointer to the start of the VIC's memory in the current bank.
+  // Since the VIC can only see 16k, there are 4 possible banks in the C64.
+  //
+  BankMemoryBase:
+    .word $0000
+
+  //
+  // This location contains a 16-bit pointer to the start of screen memory
+  // in the current bank. It defaults to $0400, which is the C64's power
+  // on default in bank 0. When you call SetVICBank, it updates this pointer.
+  //
+  ScreenMemoryBase:
+    .word $0400
+
+  //
+  // 16-bit pointer to the start of the sprite pointers. This is always 1016
+  // bytes after the start of screen memory.
+  //
+  SpritePointerBase:
+    .word $07f8
+
+  //
+  // This location contains a 16-bit pointer to the start of character memory
+  // in the current bank. It defaults to $1000, which is the C64's power
+  // on default in bank 0. When you call SetVICBank, it updates this pointer.
+  CharacterMemoryBase:
+    .word $1000
+
   .label COLOR  = $0286
   .label VICSCN = $0400
   .label SPRPTR = $07f8

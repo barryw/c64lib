@@ -347,17 +347,7 @@ unit_tests:
       address: "{c64lib_timers} + 6 + peekbyte({r2H}) * 8"
       op: eq
       word_value: "{ReadJoysticks}"
-    - description: Check A register's value
-      type: processor_register
-      register: a
-      op: eq
-      byte_value: "$21"
     - description: Make sure we're executing within 85 cycles
       type: cycle_count
       op: lt
       cycle_count: 85
-    - description: Make sure the carry flag is set
-      type: processor_register
-      register: c
-      op: eq
-      byte_value: 0

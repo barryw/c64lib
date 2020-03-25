@@ -196,6 +196,21 @@ Pop a word from the stack and store it
 #if REGISTER_MODE
 
 /*
+Set the VIC bank, the screen location and the character set location
+
+bank: 0-3
+char_address: 0-7
+screen_address: 0-15
+*/
+.macro SetVICBank(bank, char_address, screen_address) {
+  stx #bank
+  sta #char_address
+  sty #screen_address
+
+  jsr SetVICBank
+}
+
+/*
 Enable or disable a sprite's visibility
 */
 .macro SpriteEnable(number, enabled) {
@@ -263,6 +278,21 @@ Position a sprite
 }
 
 #else
+
+/*
+Set the VIC bank, the screen location and the character set location
+
+bank: 0-3
+char_address: 0-7
+screen_address: 0-15
+*/
+.macro SetVICBank(bank, char_address, screen_address) {
+  stb #bank:r0L
+  stb #char_address:r0H
+  stb #screen_address:r1L
+
+  jsr SetVICBank
+}
 
 /*
 Enable or disable a sprite's visibility
