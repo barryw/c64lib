@@ -44,7 +44,7 @@ unit_tests:
       byte_count: "$2000"
     - description: Make sure performance is acceptable
       type: cycle_count
-      cycle_count: 131720
+      cycle_count: 131721
       op: lt
 
   - name: sprites-enable-x-expand-correctly
@@ -351,3 +351,150 @@ unit_tests:
       type: cycle_count
       op: lt
       cycle_count: 85
+
+  - name: vic-set-bank-chars-and-screen-i
+    description: Set VIC bank to 0, screen to 1024 and chars to 12288
+    set_memory:
+    - description: r0L is bank 0
+      address: "{r0L}"
+      byte_value: "$00"
+    - description: r0H is character memory
+      address: "{r0H}"
+      byte_value: "$06"
+    - description: r1L is screen memory
+      address: "{r1L}"
+      byte_value: "$01"
+    jump_address: "{SetVICBank}"
+    assert:
+    - description: CIA 2 is set properly
+      type: memory_test
+      address: "{cia.CI2PRA}"
+      op: eq
+      byte_value: "$03"
+    - description: VIC is set properly
+      type: memory_test
+      address: "{vic.VMCSB}"
+      op: eq
+      byte_value: "$1c"
+    - description: Bank Memory Base is set properly
+      type: memory_test
+      address: "{vic.BankMemoryBase}"
+      op: eq
+      word_value: "$0000"
+    - description: Screen Memory Base is set properly
+      type: memory_test
+      address: "{vic.ScreenMemoryBase}"
+      op: eq
+      word_value: "$0400"
+    - description: Character Memory Base is set properly
+      type: memory_test
+      address: "{vic.CharacterMemoryBase}"
+      op: eq
+      word_value: "$3000"
+    - description: Sprite Pointer Base is set properly
+      type: memory_test
+      address: "{vic.SpritePointerBase}"
+      op: eq
+      word_value: "$07f8"
+    - description: Make sure we're executing within 85 cycles
+      type: cycle_count
+      op: lt
+      cycle_count: 170
+
+  - name: vic-set-bank-chars-and-screen-ii
+    description: Set VIC bank to 3, screen to 4096 and chars to 8192
+    set_memory:
+    - description: r0L is bank 0
+      address: "{r0L}"
+      byte_value: "$03"
+    - description: r0H is character memory
+      address: "{r0H}"
+      byte_value: "$04"
+    - description: r1L is screen memory
+      address: "{r1L}"
+      byte_value: "$04"
+    jump_address: "{SetVICBank}"
+    assert:
+    - description: CIA 2 is set properly
+      type: memory_test
+      address: "{cia.CI2PRA}"
+      op: eq
+      byte_value: "$00"
+    - description: VIC is set properly
+      type: memory_test
+      address: "{vic.VMCSB}"
+      op: eq
+      byte_value: "$48"
+    - description: Bank Memory Base is set properly
+      type: memory_test
+      address: "{vic.BankMemoryBase}"
+      op: eq
+      word_value: "$c000"
+    - description: Screen Memory Base is set properly
+      type: memory_test
+      address: "{vic.ScreenMemoryBase}"
+      op: eq
+      word_value: "$d000"
+    - description: Character Memory Base is set properly
+      type: memory_test
+      address: "{vic.CharacterMemoryBase}"
+      op: eq
+      word_value: "$e000"
+    - description: Sprite Pointer Base is set properly
+      type: memory_test
+      address: "{vic.SpritePointerBase}"
+      op: eq
+      word_value: "$d3f8"
+    - description: Make sure we're executing within 85 cycles
+      type: cycle_count
+      op: lt
+      cycle_count: 170
+
+  - name: vic-set-bank-chars-and-screen-iii
+    description: Set VIC bank to 2, screen to 8192 and chars to 0
+    set_memory:
+    - description: r0L is bank 0
+      address: "{r0L}"
+      byte_value: "$02"
+    - description: r0H is character memory
+      address: "{r0H}"
+      byte_value: "$00"
+    - description: r1L is screen memory
+      address: "{r1L}"
+      byte_value: "$08"
+    jump_address: "{SetVICBank}"
+    assert:
+    - description: CIA 2 is set properly
+      type: memory_test
+      address: "{cia.CI2PRA}"
+      op: eq
+      byte_value: "$01"
+    - description: VIC is set properly
+      type: memory_test
+      address: "{vic.VMCSB}"
+      op: eq
+      byte_value: "$80"
+    - description: Bank Memory Base is set properly
+      type: memory_test
+      address: "{vic.BankMemoryBase}"
+      op: eq
+      word_value: "$8000"
+    - description: Screen Memory Base is set properly
+      type: memory_test
+      address: "{vic.ScreenMemoryBase}"
+      op: eq
+      word_value: "$a000"
+    - description: Character Memory Base is set properly
+      type: memory_test
+      address: "{vic.CharacterMemoryBase}"
+      op: eq
+      word_value: "$8000"
+    - description: Sprite Pointer Base is set properly
+      type: memory_test
+      address: "{vic.SpritePointerBase}"
+      op: eq
+      word_value: "$a3f8"
+    - description: Make sure we're executing within 85 cycles
+      type: cycle_count
+      op: lt
+      cycle_count: 170

@@ -9,6 +9,7 @@
 
 //
 // Set the VIC bank, screen memory and character memory
+// This is the hadrware register variant
 //
 // X bank number (0-3) (multiples of 16k)
 // A character memory within the bank (0-7) (multiples of 2k)
@@ -42,12 +43,14 @@ SetVICBank:
 
 //
 // Set the VIC bank, screen memory and character memory
+// This is the pseudo register variant
 //
 // r0L bank number (0-3) (multiples of 16k)
 // r0H character memory within the bank (0-7) (multiples of 2k)
 // r1L screen memory within the bank (0-15) (multiples of 1k)
 //
 SetVICBank:
+  asl r0H
   lda r0L
   tax
   lda cia.CI2PRA
@@ -93,6 +96,9 @@ UpdateBaseLocations:
   clc
   adc vic.BankMemoryBase + $01
   sta vic.ScreenMemoryBase + $01
+  clc
+  adc #$03
+  sta vic.SpritePointerBase + $01
   pla
   and #%00001110
   asl
@@ -118,6 +124,11 @@ Constants for the C64's Video Interface Chip (VIC-II)
   //
   // 16-bit pointer to the start of the VIC's memory in the current bank.
   // Since the VIC can only see 16k, there are 4 possible banks in the C64.
+  //
+  // $0000 = BANK 0
+  // $4000 = BANK 1
+  // $8000 = BANK 2
+  // $C000 = BANK 3
   //
   BankMemoryBase:
     .word $0000
@@ -145,8 +156,6 @@ Constants for the C64's Video Interface Chip (VIC-II)
     .word $1000
 
   .label COLOR  = $0286
-  .label VICSCN = $0400
-  .label SPRPTR = $07f8
 
   // The 47 VIC-II registers
   .label SP0X   = $d000

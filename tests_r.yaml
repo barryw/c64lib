@@ -140,6 +140,15 @@ unit_tests:
       address: "{vic.CharacterMemoryBase}"
       op: eq
       word_value: "$3000"
+    - description: Sprite Pointer Base is set properly
+      type: memory_test
+      address: "{vic.SpritePointerBase}"
+      op: eq
+      word_value: "$07f8"
+    - description: Make sure we're executing within 85 cycles
+      type: cycle_count
+      op: lt
+      cycle_count: 170
 
   - name: vic-set-bank-chars-and-screen-ii
     description: Set VIC bank to 3, screen to 4096 and chars to 8192
@@ -180,3 +189,61 @@ unit_tests:
       address: "{vic.CharacterMemoryBase}"
       op: eq
       word_value: "$e000"
+    - description: Sprite Pointer Base is set properly
+      type: memory_test
+      address: "{vic.SpritePointerBase}"
+      op: eq
+      word_value: "$d3f8"
+    - description: Make sure we're executing within 85 cycles
+      type: cycle_count
+      op: lt
+      cycle_count: 170
+
+  - name: vic-set-bank-chars-and-screen-iii
+    description: Set VIC bank to 2, screen to 8192 and chars to 0
+    set_registers:
+    - description: X register is bank 0
+      register: x
+      byte_value: "$02"
+    - description: A register is character memory
+      register: a
+      byte_value: "$00"
+    - description: Y register is screen memory
+      register: y
+      byte_value: "$08"
+    jump_address: "{SetVICBank}"
+    assert:
+    - description: CIA 2 is set properly
+      type: memory_test
+      address: "{cia.CI2PRA}"
+      op: eq
+      byte_value: "$01"
+    - description: VIC is set properly
+      type: memory_test
+      address: "{vic.VMCSB}"
+      op: eq
+      byte_value: "$80"
+    - description: Bank Memory Base is set properly
+      type: memory_test
+      address: "{vic.BankMemoryBase}"
+      op: eq
+      word_value: "$8000"
+    - description: Screen Memory Base is set properly
+      type: memory_test
+      address: "{vic.ScreenMemoryBase}"
+      op: eq
+      word_value: "$a000"
+    - description: Character Memory Base is set properly
+      type: memory_test
+      address: "{vic.CharacterMemoryBase}"
+      op: eq
+      word_value: "$8000"
+    - description: Sprite Pointer Base is set properly
+      type: memory_test
+      address: "{vic.SpritePointerBase}"
+      op: eq
+      word_value: "$a3f8"
+    - description: Make sure we're executing within 85 cycles
+      type: cycle_count
+      op: lt
+      cycle_count: 170
