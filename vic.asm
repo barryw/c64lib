@@ -19,11 +19,11 @@ SetVICBank:
   mult2
   sta $02
   lda cia.CI2PRA
-  and #%11111100
+  and #cia.VIC_BANK_REVERSE_MASK
   ora BankLookup, x
   sta cia.CI2PRA
   lda vic.VMCSB
-  and #%11110001
+  and #vic.CHAR_MEM_REV_POINTER_MASK
   ora $02
   sta vic.VMCSB
   tya
@@ -32,7 +32,7 @@ SetVICBank:
   tay
   sty $02
   lda vic.VMCSB
-  and #%00001111
+  and #vic.SCREEN_MEM_REV_POINTER_MASK
   ora $02
   sta vic.VMCSB
   jmp UpdateBaseLocations
@@ -52,11 +52,11 @@ SetVICBank:
   lda r0L
   tax
   lda cia.CI2PRA
-  and #%11111100
+  and #cia.VIC_BANK_REVERSE_MASK
   ora BankLookup, x
   sta cia.CI2PRA
   lda vic.VMCSB
-  and #%11110001
+  and #vic.CHAR_MEM_REV_POINTER_MASK
   ora r0H
   sta vic.VMCSB
   asl r1L
@@ -64,7 +64,7 @@ SetVICBank:
   asl r1L
   asl r1L
   lda vic.VMCSB
-  and #%00001111
+  and #vic.SCREEN_MEM_REV_POINTER_MASK
   ora r1L
   sta vic.VMCSB
   jmp UpdateBaseLocations
@@ -122,7 +122,7 @@ Constants for the C64's Video Interface Chip (VIC-II)
   // $C000 = BANK 3
   //
   BankMemoryBase:
-    .word $0000
+    .word DEFAULT_VIC_BANK
 
   //
   // This location contains a 16-bit pointer to the start of screen memory
@@ -130,24 +130,31 @@ Constants for the C64's Video Interface Chip (VIC-II)
   // on default in bank 0. When you call SetVICBank, it updates this pointer.
   //
   ScreenMemoryBase:
-    .word $0400
+    .word DEFAULT_SCREEN_BASE
 
   //
   // 16-bit pointer to the start of the sprite pointers. This is always 1016
   // bytes after the start of screen memory.
   //
   SpritePointerBase:
-    .word $07f8
+    .word DEFAULT_SPRITE_POINTER_BASE
 
   //
   // This location contains a 16-bit pointer to the start of character memory
   // in the current bank. It defaults to $1000, which is the C64's power
   // on default in bank 0. When you call SetVICBank, it updates this pointer.
   CharacterMemoryBase:
-    .word $1000
+    .word DEFAULT_CHAR_BASE
 
-  .label SCREEN_MEM_POINTER_MASK = %11110000
-  .label CHAR_MEM_POINTER_MASK = %00001110
+  .label SCREEN_MEM_POINTER_MASK     = %11110000
+  .label SCREEN_MEM_REV_POINTER_MASK = %00001111
+  .label CHAR_MEM_POINTER_MASK       = %00001110
+  .label CHAR_MEM_REV_POINTER_MASK   = %11110001
+
+  .label DEFAULT_VIC_BANK            = $0000
+  .label DEFAULT_SCREEN_BASE         = $0400
+  .label DEFAULT_CHAR_BASE           = $1000
+  .label DEFAULT_SPRITE_POINTER_BASE = $07f8
 
   .label COLOR  = $0286
 

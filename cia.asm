@@ -4,7 +4,8 @@ Constants for the C64's 2 Complex Interface Adapters (CIA)
 
 */
 .namespace cia {
-  .label VIC_BANK_MASK = %00000011
+  .label VIC_BANK_MASK         = %00000011
+  .label VIC_BANK_REVERSE_MASK = %11111100
 
   .label BANK_0_MASK = %11
   .label BANK_1_MASK = %10
