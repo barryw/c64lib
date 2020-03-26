@@ -145,7 +145,7 @@ unit_tests:
       address: "{vic.SpritePointerBase}"
       op: eq
       word_value: "$07f8"
-    - description: Make sure we're executing within 85 cycles
+    - description: Make sure we're executing within 170 cycles
       type: cycle_count
       op: lt
       cycle_count: 170
@@ -194,7 +194,7 @@ unit_tests:
       address: "{vic.SpritePointerBase}"
       op: eq
       word_value: "$d3f8"
-    - description: Make sure we're executing within 85 cycles
+    - description: Make sure we're executing within 170 cycles
       type: cycle_count
       op: lt
       cycle_count: 170
@@ -243,7 +243,7 @@ unit_tests:
       address: "{vic.SpritePointerBase}"
       op: eq
       word_value: "$a3f8"
-    - description: Make sure we're executing within 85 cycles
+    - description: Make sure we're executing within 170 cycles
       type: cycle_count
       op: lt
       cycle_count: 170

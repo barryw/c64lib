@@ -4,6 +4,13 @@ Constants for the C64's 2 Complex Interface Adapters (CIA)
 
 */
 .namespace cia {
+  .label VIC_BANK_MASK = %00000011
+
+  .label BANK_0_MASK = %11
+  .label BANK_1_MASK = %10
+  .label BANK_2_MASK = %01
+  .label BANK_3_MASK = %00
+
   .label CIAPRA = $dc00
   .label CIAPRB = $dc01
   .label CIDDRA = $dc02

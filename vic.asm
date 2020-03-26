@@ -16,7 +16,7 @@
 // Y screen memory within the bank (0-15) (multiples of 1k)
 //
 SetVICBank:
-  asl
+  mult2
   sta $02
   lda cia.CI2PRA
   and #%11111100
@@ -27,10 +27,8 @@ SetVICBank:
   ora $02
   sta vic.VMCSB
   tya
-  asl
-  asl
-  asl
-  asl
+  mult4
+  mult4
   tay
   sty $02
   lda vic.VMCSB
@@ -79,20 +77,14 @@ SetVICBank:
 //
 UpdateBaseLocations:
   lda cia.CI2PRA
-  and #%00000011
-  eor #%00000011
-  asl
-  asl
-  asl
-  asl
-  asl
-  asl
+  and #cia.VIC_BANK_MASK
+  eor #cia.VIC_BANK_MASK
+  mult16
   sta vic.BankMemoryBase + $01
   lda vic.VMCSB
   pha
-  and #%11110000
-  lsr
-  lsr
+  and #vic.SCREEN_MEM_POINTER_MASK
+  div4
   clc
   adc vic.BankMemoryBase + $01
   sta vic.ScreenMemoryBase + $01
@@ -100,9 +92,8 @@ UpdateBaseLocations:
   adc #$03
   sta vic.SpritePointerBase + $01
   pla
-  and #%00001110
-  asl
-  asl
+  and #vic.CHAR_MEM_POINTER_MASK
+  mult4
   clc
   adc vic.BankMemoryBase + $01
   sta vic.CharacterMemoryBase + $01
@@ -110,10 +101,10 @@ UpdateBaseLocations:
   rts
 
 BankLookup:
-  .byte %11
-  .byte %10
-  .byte %01
-  .byte %00
+  .byte cia.BANK_0_MASK
+  .byte cia.BANK_1_MASK
+  .byte cia.BANK_2_MASK
+  .byte cia.BANK_3_MASK
 
 /*
 
@@ -154,6 +145,9 @@ Constants for the C64's Video Interface Chip (VIC-II)
   // on default in bank 0. When you call SetVICBank, it updates this pointer.
   CharacterMemoryBase:
     .word $1000
+
+  .label SCREEN_MEM_POINTER_MASK = %11110000
+  .label CHAR_MEM_POINTER_MASK = %00001110
 
   .label COLOR  = $0286
 
