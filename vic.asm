@@ -156,8 +156,6 @@ Constants for the C64's Video Interface Chip (VIC-II)
   .label DEFAULT_CHAR_BASE           = $1000
   .label DEFAULT_SPRITE_POINTER_BASE = $07f8
 
-  .label COLOR  = $0286
-
   // The 47 VIC-II registers
   .label SP0X   = $d000
   .label SP0Y   = $d001

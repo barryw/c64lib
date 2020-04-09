@@ -1,0 +1,240 @@
+suites {
+  suite("Tests against pseudo register library") {
+    ; Load the program under test
+    symbols("/code/include_me_full.sym")
+    load("/code/include_me_full.prg", strip_header = true)
+    load("/code/kernal.rom", address = $e000)
+
+    test("memory-fill-1", "Fill an uneven block of memory") {
+      [r0L] = $bd   ; Stuff $bd into our memory locations. Odd number, right?
+      [r1] = $1234  ; Start at $1234
+      [r2] = $12c   ; and do 300 bytes
+
+      jsr([FillMemory], stop_on_rts = true, fail_on_brk = true)
+
+      assert(cycles < 11541, "We can fill this block in fewer than 11541 cycles")
+      assert(memchk($1234, $12c, $bd), "Memory was filled properly")
+    }
+
+    test("memory-copy-1", "Ensure memory copy works") {
+      [r0] = $e000  ; Copy the KERNAL rom
+      [r1] = $4000  ; into $4000
+      [r2] = $2000  ; Copy all 8k of it
+
+      jsr([CopyMemory], stop_on_rts = true, fail_on_brk = true)
+
+      assert(cycles < 131720, "Ensure that we run in fewer than 131720 cycles")
+      assert(memcmp($e000, $4000, $2000), "Ensure that KERNAL was copied correctly")
+    }
+
+    test("sprites-enable-x-expand-correctly", "Enable horizontal expansion of a sprite") {
+      [r3L] = $01
+      [r3H] = [SPR_X_EXPAND]
+      [r4L] = [SPR_EXPAND]
+      [vic.XXPAND] = $80
+
+      jsr([ChangeSpriteAttribute], stop_on_rts = true, fail_on_brk = true)
+
+      assert(cycles < 34, "Ensure that we run in fewer than 34 cycles")
+      assert([vic.XXPAND] == $82, "Sprite 1's horizontal expansion is set to True")
+    }
+
+    test("sprites-disable-x-expand-correctly", "Disable horizontal expansion of a sprite") {
+      [r3L] = $05
+      [r3H] = [SPR_X_EXPAND]
+      [r4L] = [SPR_NORMAL]
+      [vic.XXPAND] = $60
+
+      jsr([ChangeSpriteAttribute], stop_on_rts = true, fail_on_brk = true)
+
+      assert(cycles < 38, "Ensure that we run in fewer than 38 cycles")
+      assert([vic.XXPAND] == $40, "Sprite 5's horizontal expansion is set to False")
+    }
+
+    test("sprites-enable-sprite-correctly", "Enable a sprite") {
+      [r3L] = $07
+      [r3H] = [SPR_VISIBLE]
+      [r4L] = [SPR_SHOW]
+      [vic.SPENA] = $01
+
+      jsr([ChangeSpriteAttribute], stop_on_rts = true, fail_on_brk = true)
+
+      assert(cycles < 34, "Ensure that we run in fewer than 34 cycles")
+      assert([vic.SPENA] == $81, "Sprite 7 and 0 are now enabled")
+    }
+
+    test("sprites-disable-sprite-correctly", "Disable a sprite") {
+      [r3L] = $03
+      [r3H] = [SPR_VISIBLE]
+      [r4L] = [SPR_HIDE]
+      [vic.SPENA] = $0a
+
+      jsr([ChangeSpriteAttribute], stop_on_rts = true, fail_on_brk = true)
+
+      assert(cycles < 38, "Ensure that we run in fewer than 38 cycles")
+      assert([vic.SPENA] == $02, "Sprite 3 is disabled and sprite 1 is still enabled")
+    }
+
+    test("sprites-positions-correctly-without-msb", "Sprite X pos < 256 sets MSB to 0") {
+      [vic.MSIGX] = $00
+      [r3L] = $00
+      [r4] = $00ff
+      [r5L] = $40
+
+      jsr([PositionSprite], stop_on_rts = true, fail_on_brk = true)
+
+      assert(cycles < 71, "Ensure that we run in fewer than 71 cycles")
+      assert([vic.SP0X]   == $ff, "Sprite 0's X pos is at ff")
+      assert([vic.MSIGX]  == $00, "And sprite 0's MSB is set to 0")
+    }
+
+    test("sprites-sets-msb-properly", "Moving a sprite horizontally sets the MSB properly") {
+      [vic.MSIGX] = $00
+      [r3L] = $00
+      [r4] = $0100
+      [r5] = $40
+
+      jsr([PositionSprite], stop_on_rts = true, fail_on_brk = true)
+
+      assert(cycles < 78, "Ensure that we run in fewer than 78 cycles")
+      assert([vic.SP0X]   == $00, "Sprite 0's X pos is at 0")
+      assert([vic.MSIGX]  == $01, "But sprite 0's MSB is set to 1")
+    }
+
+    test("timer-single-disables-on-update", "Single shot timer disables when it hits 0") {
+      [c64lib_timers] = [ENABLE]                  ; Enable timer 0
+      [c64lib_timers] + $01 = [TIMER_SINGLE]      ; It's a single shot timer
+      [c64lib_timers] + $02 = $01                 ; Current countdown has 1 tick left
+      [c64lib_timers] + $04 = [TIMER_ONE_SECOND]  ; Fires every second
+      [c64lib_timers] + $06 = [ReadJoysticks]     ; Calls the routine to read the joysticks when it fires
+
+      jsr([UpdateTimers], stop_on_rts = true, fail_on_brk = true)
+
+      assert(cycles < 471, "Ensure that we run in fewer than 471 cycles")
+      assert([c64lib_timers] == [DISABLE], "Timer is disabled")
+    }
+
+    test("timer-continuous-will-reset-on-update", "Continuous timer resets when it hits 0") {
+      [c64lib_timers] = [ENABLE]
+      [c64lib_timers] + $01 = [TIMER_CONTINUOUS]
+      [c64lib_timers] + $02 = $01
+      [c64lib_timers] + $04 = [TIMER_ONE_SECOND]
+      [c64lib_timers] + $06 = [ReadJoysticks]
+
+      jsr([UpdateTimers], stop_on_rts = true, fail_on_brk = true)
+
+      assert(cycles < 462, "Ensure that we run in fewer than 462 cycles")
+      assert([c64lib_timers]        == [ENABLE], "Timer is enabled")
+      assert([c64lib_timers] + $02  == [TIMER_ONE_SECOND], "Current value has been reset")
+    }
+
+    test("timer-enable", "Enable a disabled timer") {
+      [c64lib_timers] = [DISABLE]
+      [r2H] = $00
+      [r3L] = [ENABLE]
+
+      jsr([EnDisTimer], stop_on_rts = true, fail_on_brk = true)
+
+      assert(cycles < 26, "Ensure that we run in fewer than 26 cycles")
+      assert([c64lib_timers] == [ENABLE], "Timer has been enabled")
+    }
+
+    test("timer-disable", "Disable an enabled timer") {
+      [c64lib_timers] = [ENABLE]
+      [r2H] = $00
+      [r3L] = [DISABLE]
+
+      jsr([EnDisTimer], stop_on_rts = true, fail_on_brk = true)
+
+      assert(cycles < 26, "Ensure that we run in fewer than 26 cycles")
+      assert([c64lib_timers] == [DISABLE], "Timer has been enabled")
+    }
+
+    test("timer-init-timer-memory", "Make sure initializing the timers clears timer memory") {
+      jsr([ClearTimers], stop_on_rts = true, fail_on_brk = true)
+
+      assert(cycles < 2538, "Ensure that we run in fewer than 2538 cycles")
+      assert(memchk([c64lib_timers], [TIMER_STRUCT_BYTES], $00), "Timer memory is cleared")
+    }
+
+    test("timer-create-single-shot", "Make sure we can create a single shot timer") {
+      [r0] = $1000
+      [r1] = [ReadJoysticks]
+      [r2L] = [TIMER_SINGLE]
+      [r2H] = $00
+      [r3L] = [ENABLE]
+
+      jsr([CreateTimer], stop_on_rts = true, fail_on_brk = true)
+
+      assert(cycles < 82, "Ensure that we run in fewer than 82 cycles")
+      assert([c64lib_timers] + $00 + peekbyte([r2H]) * 8 == [ENABLE], "Timer enabled")
+      assert([c64lib_timers] + $01 + peekbyte([r2H]) * 8 == [TIMER_SINGLE], "Timer type is single")
+      assert([c64lib_timers] + $02 + peekbyte([r2H]) * 8 == $1000.l, "Timer's current value LO byte")
+      assert([c64lib_timers] + $03 + peekbyte([r2H]) * 8 == $1000.h, "Timer's current value HI byte")
+      assert([c64lib_timers] + $04 + peekbyte([r2H]) * 8 == $1000.l, "Timer's frequency LO byte")
+      assert([c64lib_timers] + $05 + peekbyte([r2H]) * 8 == $1000.h, "Timer's frequency HI byte")
+      assert([c64lib_timers] + $06 + peekbyte([r2H]) * 8 == [ReadJoysticks].l, "Timer's callback address LO byte")
+      assert([c64lib_timers] + $07 + peekbyte([r2H]) * 8 == [ReadJoysticks].h, "Timer's callback address LO byte")
+    }
+
+    test("vic-set-bank-chars-and-screen-i", "Set VIC bank to 0, screen to 1024 and chars to 12288") {
+      [r0L] = $00
+      [r0H] = $06
+      [r1L] = $01
+
+      jsr([SetVICBank], stop_on_rts = true, fail_on_brk = true)
+
+      assert(cycles < 163, "Ensure that we run in fewer than 163 cycles")
+      assert([cia.CI2PRA]                     == $03, "CIA 2 is set properly")
+      assert([vic.VMCSB]                      == $1c, "VIC is set properly")
+      assert([vic.BankMemoryBase]             == $0000.l, "Bank Memory Base is set properly LO byte")
+      assert([vic.BankMemoryBase] + $01       == $0000.h, "Bank Memory Base is set properly HI byte")
+      assert([vic.ScreenMemoryBase]           == $0400.l, "Screen Memory Base is set properly LO byte")
+      assert([vic.ScreenMemoryBase] + $01     == $0400.h, "Screen Memory Base is set properly HI byte")
+      assert([vic.CharacterMemoryBase]        == $3000.l, "Character Memory Base is set properly LO byte")
+      assert([vic.CharacterMemoryBase] + $01  == $3000.h, "Character Memory Base is set properly HI byte")
+      assert([vic.SpritePointerBase]          == $07f8.l, "Sprite Pointer Base is set properly LO byte")
+      assert([vic.SpritePointerBase] + $01    == $07f8.h, "Sprite Pointer Base is set properly HI byte")
+    }
+
+    test("vic-set-bank-chars-and-screen-ii", "Set VIC bank to 3, screen to 4096 and chars to 8192") {
+      [r0L] = $03
+      [r0H] = $04
+      [r1L] = $04
+
+      jsr([SetVICBank], stop_on_rts = true, fail_on_brk = true)
+
+      assert(cycles < 163, "Ensure that we run in fewer than 163 cycles")
+      assert([cia.CI2PRA]                     == $00, "CIA 2 is set properly")
+      assert([vic.VMCSB]                      == $48, "VIC is set properly")
+      assert([vic.BankMemoryBase]             == $c000.l, "Bank Memory Base is set properly LO byte")
+      assert([vic.BankMemoryBase] + $01       == $c000.h, "Bank Memory Base is set properly HI byte")
+      assert([vic.ScreenMemoryBase]           == $d000.l, "Screen Memory Base is set properly LO byte")
+      assert([vic.ScreenMemoryBase] + $01     == $d000.h, "Screen Memory Base is set properly HI byte")
+      assert([vic.CharacterMemoryBase]        == $e000.l, "Character Memory Base is set properly LO byte")
+      assert([vic.CharacterMemoryBase] + $01  == $e000.h, "Character Memory Base is set properly HI byte")
+      assert([vic.SpritePointerBase]          == $d3f8.l, "Sprite Pointer Base is set properly LO byte")
+      assert([vic.SpritePointerBase] + $01    == $d3f8.h, "Sprite Pointer Base is set properly HI byte")
+    }
+
+    test("vic-set-bank-chars-and-screen-iii", "Set VIC bank to 2, screen to 8192 and chars to 0") {
+      [r0L] = $02
+      [r0H] = $00
+      [r1L] = $08
+
+      jsr([SetVICBank], stop_on_rts = true, fail_on_brk = true)
+
+      assert(cycles <= 162, "Ensure that we run in fewer than 163 cycles")
+      assert([cia.CI2PRA]                     == $01, "CIA 2 is set properly")
+      assert([vic.VMCSB]                      == $80, "VIC is set properly")
+      assert([vic.BankMemoryBase]             == $8000.l, "Bank Memory Base is set properly LO byte")
+      assert([vic.BankMemoryBase] + $01       == $8000.h, "Bank Memory Base is set properly HI byte")
+      assert([vic.ScreenMemoryBase]           == $a000.l, "Screen Memory Base is set properly LO byte")
+      assert([vic.ScreenMemoryBase] + $01     == $a000.h, "Screen Memory Base is set properly HI byte")
+      assert([vic.CharacterMemoryBase]        == $8000.l, "Character Memory Base is set properly LO byte")
+      assert([vic.CharacterMemoryBase] + $01  == $8000.h, "Character Memory Base is set properly HI byte")
+      assert([vic.SpritePointerBase]          == $a3f8.l, "Sprite Pointer Base is set properly LO byte")
+      assert([vic.SpritePointerBase] + $01    == $a3f8.h, "Sprite Pointer Base is set properly HI byte")
+    }
+  }
+}

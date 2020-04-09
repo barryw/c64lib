@@ -29,5 +29,4 @@ build_timers:
 
 test: build
 	@docker pull barrywalker71/sim6502cli:latest
-	@docker run -v ${PWD}:/code -it barrywalker71/sim6502cli:latest -y /code/tests.yaml -s /code/include_me_full.sym
-	@docker run -v ${PWD}:/code -it barrywalker71/sim6502cli:latest -y /code/tests_r.yaml -s /code/include_me_full_r.sym
+	@docker run -v ${PWD}:/code -it barrywalker71/sim6502cli:latest -s /code/tests.6502 -t
