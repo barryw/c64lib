@@ -169,12 +169,9 @@ suites {
       assert(cycles < 82, "Ensure that we run in fewer than 82 cycles")
       assert([c64lib_timers] + $00 + peekbyte([r2H]) * 8 == [ENABLE], "Timer enabled")
       assert([c64lib_timers] + $01 + peekbyte([r2H]) * 8 == [TIMER_SINGLE], "Timer type is single")
-      assert([c64lib_timers] + $02 + peekbyte([r2H]) * 8 == $1000.l, "Timer's current value LO byte")
-      assert([c64lib_timers] + $03 + peekbyte([r2H]) * 8 == $1000.h, "Timer's current value HI byte")
-      assert([c64lib_timers] + $04 + peekbyte([r2H]) * 8 == $1000.l, "Timer's frequency LO byte")
-      assert([c64lib_timers] + $05 + peekbyte([r2H]) * 8 == $1000.h, "Timer's frequency HI byte")
-      assert([c64lib_timers] + $06 + peekbyte([r2H]) * 8 == [ReadJoysticks].l, "Timer's callback address LO byte")
-      assert([c64lib_timers] + $07 + peekbyte([r2H]) * 8 == [ReadJoysticks].h, "Timer's callback address LO byte")
+      assert(([c64lib_timers] + $02 + peekbyte([r2H]) * 8).w == $1000, "Timer's current value")
+      assert(([c64lib_timers] + $04 + peekbyte([r2H]) * 8).w == $1000, "Timer's frequency")
+      assert(([c64lib_timers] + $06 + peekbyte([r2H]) * 8).w == [ReadJoysticks], "Timer's callback address")
     }
 
     test("vic-set-bank-chars-and-screen-i", "Set VIC bank to 0, screen to 1024 and chars to 12288") {
@@ -187,14 +184,10 @@ suites {
       assert(cycles < 163, "Ensure that we run in fewer than 163 cycles")
       assert([cia.CI2PRA]                     == $03, "CIA 2 is set properly")
       assert([vic.VMCSB]                      == $1c, "VIC is set properly")
-      assert([vic.BankMemoryBase]             == $0000.l, "Bank Memory Base is set properly LO byte")
-      assert([vic.BankMemoryBase] + $01       == $0000.h, "Bank Memory Base is set properly HI byte")
-      assert([vic.ScreenMemoryBase]           == $0400.l, "Screen Memory Base is set properly LO byte")
-      assert([vic.ScreenMemoryBase] + $01     == $0400.h, "Screen Memory Base is set properly HI byte")
-      assert([vic.CharacterMemoryBase]        == $3000.l, "Character Memory Base is set properly LO byte")
-      assert([vic.CharacterMemoryBase] + $01  == $3000.h, "Character Memory Base is set properly HI byte")
-      assert([vic.SpritePointerBase]          == $07f8.l, "Sprite Pointer Base is set properly LO byte")
-      assert([vic.SpritePointerBase] + $01    == $07f8.h, "Sprite Pointer Base is set properly HI byte")
+      assert([vic.BankMemoryBase].w           == $0000, "Bank Memory Base is set properly")
+      assert([vic.ScreenMemoryBase].w         == $0400, "Screen Memory Base is set properly")
+      assert([vic.CharacterMemoryBase].w      == $3000, "Character Memory Base is set properly")
+      assert([vic.SpritePointerBase].w        == $07f8, "Sprite Pointer Base is set properly")
     }
 
     test("vic-set-bank-chars-and-screen-ii", "Set VIC bank to 3, screen to 4096 and chars to 8192") {
@@ -207,14 +200,10 @@ suites {
       assert(cycles < 163, "Ensure that we run in fewer than 163 cycles")
       assert([cia.CI2PRA]                     == $00, "CIA 2 is set properly")
       assert([vic.VMCSB]                      == $48, "VIC is set properly")
-      assert([vic.BankMemoryBase]             == $c000.l, "Bank Memory Base is set properly LO byte")
-      assert([vic.BankMemoryBase] + $01       == $c000.h, "Bank Memory Base is set properly HI byte")
-      assert([vic.ScreenMemoryBase]           == $d000.l, "Screen Memory Base is set properly LO byte")
-      assert([vic.ScreenMemoryBase] + $01     == $d000.h, "Screen Memory Base is set properly HI byte")
-      assert([vic.CharacterMemoryBase]        == $e000.l, "Character Memory Base is set properly LO byte")
-      assert([vic.CharacterMemoryBase] + $01  == $e000.h, "Character Memory Base is set properly HI byte")
-      assert([vic.SpritePointerBase]          == $d3f8.l, "Sprite Pointer Base is set properly LO byte")
-      assert([vic.SpritePointerBase] + $01    == $d3f8.h, "Sprite Pointer Base is set properly HI byte")
+      assert([vic.BankMemoryBase].w           == $c000, "Bank Memory Base is set properly")
+      assert([vic.ScreenMemoryBase].w         == $d000, "Screen Memory Base is set properly")
+      assert([vic.CharacterMemoryBase].w      == $e000, "Character Memory Base is set properly")
+      assert([vic.SpritePointerBase].w        == $d3f8, "Sprite Pointer Base is set properly")
     }
 
     test("vic-set-bank-chars-and-screen-iii", "Set VIC bank to 2, screen to 8192 and chars to 0") {
@@ -227,14 +216,10 @@ suites {
       assert(cycles <= 162, "Ensure that we run in fewer than 163 cycles")
       assert([cia.CI2PRA]                     == $01, "CIA 2 is set properly")
       assert([vic.VMCSB]                      == $80, "VIC is set properly")
-      assert([vic.BankMemoryBase]             == $8000.l, "Bank Memory Base is set properly LO byte")
-      assert([vic.BankMemoryBase] + $01       == $8000.h, "Bank Memory Base is set properly HI byte")
-      assert([vic.ScreenMemoryBase]           == $a000.l, "Screen Memory Base is set properly LO byte")
-      assert([vic.ScreenMemoryBase] + $01     == $a000.h, "Screen Memory Base is set properly HI byte")
-      assert([vic.CharacterMemoryBase]        == $8000.l, "Character Memory Base is set properly LO byte")
-      assert([vic.CharacterMemoryBase] + $01  == $8000.h, "Character Memory Base is set properly HI byte")
-      assert([vic.SpritePointerBase]          == $a3f8.l, "Sprite Pointer Base is set properly LO byte")
-      assert([vic.SpritePointerBase] + $01    == $a3f8.h, "Sprite Pointer Base is set properly HI byte")
+      assert([vic.BankMemoryBase].w           == $8000, "Bank Memory Base is set properly")
+      assert([vic.ScreenMemoryBase].w         == $a000, "Screen Memory Base is set properly")
+      assert([vic.CharacterMemoryBase].w      == $8000, "Character Memory Base is set properly")
+      assert([vic.SpritePointerBase].w        == $a3f8, "Sprite Pointer Base is set properly")
     }
   }
 }
